@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">ItemGrouping</string>
+    <string name="group_header" >Grouped Items with listId -> %d</string>
+</resources>
