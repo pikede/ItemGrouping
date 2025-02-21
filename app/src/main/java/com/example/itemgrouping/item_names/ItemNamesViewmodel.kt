@@ -11,18 +11,21 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.lang.Exception
 import javax.inject.Inject
 
 //TODO add tests
 @HiltViewModel
-class ItemNamesViewmodel @Inject constructor(private val getItemNames: GetItemNames) :
+internal class ItemNamesViewmodel @Inject constructor(private val getItemNames: GetItemNames) :
     ViewModel() {
     private val defaultState = ItemNamesViewState.Empty
+    private val searchIdState = MutableStateFlow(defaultState.searchID)
     private val itemsState = MutableStateFlow(defaultState.groupedItems)
     private val itemsViewTypeState = MutableStateFlow(defaultState.groupedItemsViewType)
     private val isLoadingState = MutableStateFlow(defaultState.isLoading)
     private val errorState = MutableStateFlow(defaultState.error)
     val state = combine(
+        searchIdState,
         itemsState,
         itemsViewTypeState,
         isLoadingState,
@@ -41,26 +44,12 @@ class ItemNamesViewmodel @Inject constructor(private val getItemNames: GetItemNa
     private fun getSortedGroupedItems() = viewModelScope.launch {
         isLoadingState.value = true
         getItemNames()?.let {
-            val filteredNames = filterInvalidNames(it)
-            val groupedByID = groupSortedItemsById(filteredNames)
-            itemsState.value = groupedByID
-            itemsViewTypeState.value = getSortedItemsByItemViewType(filteredNames)
+            itemsViewTypeState.value = getSortedItemsByItemViewType(it)
         } ?: run {
             errorState.value =
                 Exception("Error fetching item names") // todo RECEIVE error from repository and handle here
         }
         isLoadingState.value = false
-    }
-
-    private fun groupSortedItemsById(names: List<ItemName>): List<List<ItemName>> {
-        val map = names.groupBy { it.listId }
-        val sortedValues = arrayListOf<List<ItemName>>()
-        val sortedListIds = map.keys.sorted() // sort the names by list id
-        for (key in sortedListIds) {
-            val values = map[key] ?: continue
-            sortedValues += parseAndSortNames(values)
-        }
-        return sortedValues
     }
 
     private fun getSortedItemsByItemViewType(names: List<ItemName>): List<ItemNamesViewType> {
@@ -87,10 +76,27 @@ class ItemNamesViewmodel @Inject constructor(private val getItemNames: GetItemNa
         values.sortedBy { it.name }
     }
 
-    /**
-     * filters out empty and null names
-     */
-    private fun filterInvalidNames(names: List<ItemName>): List<ItemName> {
-        return names.filter { it.name != null && it.name.isNotEmpty() == true }
+    fun updateAndFilter(searchString: String) {
+        searchIdState.value = searchString
+        filterSearchId(searchString)
+    }
+
+    private fun filterSearchId(enteredListId: String) = viewModelScope.launch {
+        getItemNames()?.let {
+            try {
+                val filtered = it.filter { it.listId == enteredListId.toInt() }
+                when {
+                    filtered.isEmpty() -> resetIdList()
+                    else -> itemsViewTypeState.value = getSortedItemsByItemViewType(filtered)
+                }
+            } catch (e: Exception) {
+                errorState.value = Exception("Error filtering item names")
+                Log.e("::logged ItemNamesViewmodel", "Error filtering item names $e")
+            }
+        }
+    }
+
+    private fun resetIdList() {
+        getSortedGroupedItems() // todo reset with data from local cache
     }
 }

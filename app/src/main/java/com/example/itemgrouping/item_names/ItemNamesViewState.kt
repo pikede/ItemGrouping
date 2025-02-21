@@ -10,7 +10,8 @@ import androidx.compose.ui.unit.dp
 import com.example.itemgrouping.models.ItemName
 import com.example.itemgrouping.R
 
-data class ItemNamesViewState(
+internal data class ItemNamesViewState(
+    val searchID: String = "",
     val groupedItems: List<List<ItemName>> = emptyList(),
     val groupedItemsViewType: List<ItemNamesViewType> = emptyList(),
     val isLoading: Boolean = false,
@@ -21,7 +22,7 @@ data class ItemNamesViewState(
     }
 }
 
-sealed interface ItemNamesViewType {
+internal sealed interface ItemNamesViewType {
     data class Header(val listId: Int) : ItemNamesViewType {
         @Composable
         fun Content(modifier: Modifier = Modifier) = Text(
