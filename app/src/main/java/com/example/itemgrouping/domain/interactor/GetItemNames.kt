@@ -7,6 +7,14 @@ import javax.inject.Inject
 class GetItemNames @Inject constructor(private val itemRepository: ItemRepository) {
 
     suspend operator fun invoke(): List<ItemName>? {
-        return itemRepository.getItemNames()
+        val itemNames = itemRepository.getItemNames()
+        return filterInvalidNames(itemNames.orEmpty())
+    }
+
+    /**
+     * filters out empty and null names
+     */
+    private fun filterInvalidNames(names: List<ItemName>): List<ItemName> {
+        return names.filter { it.name != null && it.name.isNotEmpty() == true }
     }
 }

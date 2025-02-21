@@ -1,4 +1,5 @@
-ItemGrouping: Displays items retrieved from an API grouped by their lisId.
+# ItemGrouping
+Displays items retrieved from an API grouped by their lisId.
 
 Display all the items grouped by "listId"
 Sorts the results first by "listId" then by "name" when displaying.
