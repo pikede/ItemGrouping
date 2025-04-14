@@ -6,5 +6,5 @@ import retrofit2.http.GET
 
 interface ItemService {
     @GET("hiring.json")
-    suspend fun getItemNames(): Response<List<ItemName>>
+    suspend fun getItemNames(): List<ItemName>
 }

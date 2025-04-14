@@ -24,7 +24,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             ItemGroupingTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    ItemNamesRoute(
+                    ItemApp(
                         navController = rememberNavController(),
                         modifier = Modifier.padding(innerPadding)
                     )
@@ -36,12 +36,10 @@ class MainActivity : ComponentActivity() {
 
 sealed class DestinationScreen(val route: String) {
     object ItemNames : DestinationScreen("itemNames")
-    object Detail : DestinationScreen("detail")
-    // to do add detail view for master detail layout ItemName(val itemId: Int) : DestinationScreen("itemNames/{itemId}") for specific item name
 }
 
 @Composable
-fun InstagramApp(
+fun ItemApp(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
 ) {
@@ -59,6 +57,6 @@ fun InstagramApp(
 @Composable
 fun GreetingPreview() {
     ItemGroupingTheme {
-        InstagramApp()
+        ItemApp()
     }
 }

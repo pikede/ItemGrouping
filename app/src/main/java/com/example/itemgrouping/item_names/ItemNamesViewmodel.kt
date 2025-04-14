@@ -1,6 +1,7 @@
 package com.example.itemgrouping.item_names
 
 import android.util.Log
+import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.itemgrouping.domain.interactor.GetItemNames
@@ -11,22 +12,18 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.lang.Exception
 import javax.inject.Inject
 
-//TODO add tests
 @HiltViewModel
-internal class ItemNamesViewmodel @Inject constructor(private val getItemNames: GetItemNames) :
+class ItemNamesViewmodel @Inject constructor(private val getItemNames: GetItemNames) :
     ViewModel() {
     private val defaultState = ItemNamesViewState.Empty
     private val searchIdState = MutableStateFlow(defaultState.searchID)
-    private val itemsState = MutableStateFlow(defaultState.groupedItems)
     private val itemsViewTypeState = MutableStateFlow(defaultState.groupedItemsViewType)
     private val isLoadingState = MutableStateFlow(defaultState.isLoading)
     private val errorState = MutableStateFlow(defaultState.error)
     val state = combine(
         searchIdState,
-        itemsState,
         itemsViewTypeState,
         isLoadingState,
         errorState,
@@ -41,18 +38,23 @@ internal class ItemNamesViewmodel @Inject constructor(private val getItemNames: 
         getSortedGroupedItems()
     }
 
-    private fun getSortedGroupedItems() = viewModelScope.launch {
+    @VisibleForTesting
+    fun getSortedGroupedItems() = viewModelScope.launch {
         isLoadingState.value = true
-        getItemNames()?.let {
-            itemsViewTypeState.value = getSortedItemsByItemViewType(it)
-        } ?: run {
-            errorState.value =
-                Exception("Error fetching item names") // todo RECEIVE error from repository and handle here
-        }
+        runCatching { getItemNames() }
+            .onSuccess {
+                when {
+                    it.isNullOrEmpty() -> errorState.value = Exception("Empty or null ItemNames")
+                    else -> itemsViewTypeState.value = getSortedItemsByItemViewType(it)
+                }
+            }.onFailure {
+                errorState.value = it
+            }
         isLoadingState.value = false
     }
 
-    private fun getSortedItemsByItemViewType(names: List<ItemName>): List<ItemNamesViewType> {
+    @VisibleForTesting
+    fun getSortedItemsByItemViewType(names: List<ItemName>): List<ItemNamesViewType> {
         val map = names.groupBy { it.listId }
         val sortedValues = mutableListOf<ItemNamesViewType>()
         val sortedListIds = map.keys.sorted() // sort the names by list id
@@ -97,6 +99,6 @@ internal class ItemNamesViewmodel @Inject constructor(private val getItemNames: 
     }
 
     private fun resetIdList() {
-        getSortedGroupedItems() // todo reset with data from local cache
+        getSortedGroupedItems()
     }
 }

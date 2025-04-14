@@ -10,11 +10,8 @@ Displays the result in an easy-to-read list, with the Header to list of items.
 minSdk API 35
 
 Improvements and TODOs
-Add tests
 Cache items, ids, and names and read from cache
 Possible modularization
 
 Tools: Dependency Injection Hilt, Kotlin, Coroutines, Jetpack Compose, MVVM, Retrofit,
-Repository pattern.
-
-API: https://fetch-hiring.s3.amazonaws.com/hiring.json
+Repository pattern, Turbine, Mockk.

@@ -1,5 +1,6 @@
 package com.example.itemgrouping.item_names
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -9,6 +10,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -62,10 +64,12 @@ private fun ItemNamesContent(
                     is ItemNamesViewType.Item -> it.Content()
                 }
             }
-            // todo navigate to detail view with navController
         }
     }
-    // TODO show state.errors
+    val context = LocalContext.current
+    state.error?.message?.let {
+        Toast.makeText(context, "Error occurred $it", Toast.LENGTH_LONG).show()
+    }
 }
 
 @Preview(showBackground = true)
